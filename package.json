@@ -10,7 +10,7 @@
     "tape": "^4.4.0"
   },
   "scripts": {
-    "test": "tape test"
+    "test": "tape test.js"
   },
   "keywords": [
     "example"
