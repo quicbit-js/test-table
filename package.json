@@ -13,7 +13,9 @@
     "test": "tape test.js"
   },
   "keywords": [
-    "example"
+    "test",
+    "table",
+    "data"
   ],
   "author": "Matthew Voss",
   "license": "ISC"
