@@ -1,0 +1,20 @@
+{
+  "name": "test-table",
+  "version": "0.0.1",
+  "description": "a simple table for data-driven testing",
+  "homepage": "https://github.com/quicbit-js/test-table",
+  "url": "https://github.com/quicbit-js/test-kit/issues",
+  "email": "support@quicbit.com",
+  "repository": "quicbit-js/test-table",
+  "devDependencies": {
+    "tape": "^4.4.0"
+  },
+  "scripts": {
+    "test": "tape test"
+  },
+  "keywords": [
+    "example"
+  ],
+  "author": "Matthew Voss",
+  "license": "ISC"
+}
