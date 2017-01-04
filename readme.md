@@ -1,7 +1,15 @@
 # test-table
 
-A very simple table for data-driven testing
+A very simple table for data-driven testing.  test-table is provided through
+[quicbit-js/test-kit](http://github.com/quicbit-js/test-kit), but can be 
+used independently as well.
 
+
+The table header is an array of strings (column names)
+Each row is an object with values stored under property names (matching header names).
+
+
+## Usage
 Create a table like so:
  
      > var tbl = require('./test-table').fromData([
@@ -36,3 +44,28 @@ and create more coverage:
             t.equals(g.maxdepth(), r.maxdepth)
         })
     })
+
+
+## Table Comparison
+
+Comparing tables and/or showing first difference can be handy in testing.  test-table
+has a couple functions for this:
+
+
+<code>unequal_cell()</code> returns the <code>\[row, col\]</code> location of the first differing 
+cell value found between two given tables:
+
+    table1.unequal_cell(table2, options) '
+    
+... where options can provide
+
+    {
+       equal: function(a, b, max_depth)   // custom equal function (which may or may not honor depth argument)
+       max_depth                          // max_depth passed to equal function
+    }
+
+by default, equals will perform deep compare of arrays and objects (but not other types like dates).
+
+
+<code>equals()</code> checks that headers and row values are the same using the same
+comparisons as unequal_cell (returning true iff all cells are equal)
