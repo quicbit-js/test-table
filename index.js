@@ -1,48 +1,112 @@
 // A simple table where each row is an object.  helps with data-driven testing.
 'use strict'
 
-function Table(header, rows) {
-    this.header = header
-    this.rows = rows
-}
-var TP = Table.prototype
-
-TP.col = function (name) {
-    return this.rows.reduce(function(a, r){ a.push(r[name]); return a}, [] )
-}
-
-TP.col_index = function (name) {
-    return this.header.indexOf(name)
-}
-
-Object.defineProperty(TP, 'length', {
-    get: function() { return this.rows.length }
-})
-
-TP.col_name = function(col) {
-    switch(typeof(col)) {
-        case 'number':
-            return header[col]
-        case 'string':
-            return col
-        default:
-            throw Error('cannot get column for ' + col)
+class Table {
+    constructor(header, rows) {
+        this.header = header
+        this.rows = rows
     }
-}
 
-// return the value at the given row (number) and column (number or string).
-// if only row arg is given, return the entire row
-TP.val = function(row, col) {
-    var row_obj = this.rows[row]
-    return arguments.length === 1 ? row_obj : row_obj[this.col_name(col)]
-}
+    col(name) {
+        return this.rows.reduce(function (a, r) {
+            a.push(r[name]);
+            return a
+        }, [])
+    }
 
-TP.set_val = function(row, col, v) {
-    var row_obj = this.rows[row]
-    var cn = this.col_name(col)
-    var prev = row_obj[row][cn]
-    row_obj[cn] = v
-    return prev
+    col_index(name) {
+        return this.header.indexOf(name)
+    }
+
+    get length() {
+        return this.rows.length
+    }
+
+    col_name(col) {
+        switch (typeof(col)) {
+            case 'number':
+                return header[col]
+            case 'string':
+                return col
+            default:
+                throw Error('cannot get column for ' + col)
+        }
+    }
+
+    // return the value at the given row (number) and column (number or string).
+    // if only row arg is given, return the entire row
+    val(row, col) {
+        var row_obj = this.rows[row]
+        return arguments.length === 1 ? row_obj : row_obj[this.col_name(col)]
+    }
+
+    set_val(row, col, v) {
+        var row_obj = this.rows[row]
+        var cn = this.col_name(col)
+        var prev = row_obj[row][cn]
+        row_obj[cn] = v
+        return prev
+    }
+
+
+    // Return the [row, col] tuple of the first unequal data value found using strict compare on items and
+    // on Object/Array elements.  For numbers, a isNaN(a) === isNaN(b) will consider two
+    // NaN values equal (even though strictly speaking, equivalence of NaNs can't be known).
+    // Return null if no cells are different.  Recurse to given max_depth (default depth 100).
+    // Search is in order of rows, then in order of columns.
+    // Headers are not compared.
+    //
+    // opt {
+    //    equal: function(a, b, max_depth)   // optional custom equal function (which may or may not honor depth argument)
+    //    max_depth                          // max_depth passed to equal function
+    // }
+    //
+    unequal_cell(tbl, opt) {
+        opt = opt || {}
+        var max_depth = opt.max_depth || (opt.max_depth === 0 ? 0 : 100)
+        var equal = opt.equal || default_equal
+
+        var a = this
+        var b = tbl
+        var aheader = a.header
+        var bheader = b.header
+        if(aheader.length !== bheader.length) {
+            return false
+        }
+
+        var arows = a.rows
+        var brows = b.rows
+        if(arows.length != brows.length) {
+            return false
+        }
+        var nrows = arows.length
+        var ncols = aheader.length
+        for(var ri = 0; ri < nrows; ri++) {
+            var arow = arows[ri]
+            var brow = brows[ri]
+            for(var ci=0; ci < ncols; ci++) {
+                if(!equal( arow[aheader[ci]], brow[bheader[ci]], 0, max_depth )) {
+                    return [ri, ci]
+                }
+            }
+        }
+        return null
+    }
+
+    equals(tbl) {
+        if(!default_equal_arr(this.header, tbl.header, 0, 1)) {
+            return false
+        }
+        return this.unequal_cell(tbl) === null
+    }
+
+    toString() {
+        var header = this.header
+        var rowstrings = this.rows.map(function(row) {
+            return header.map(function(name){ return row[name] }).join(',')  // values as string
+        })
+        return header.join(',') + '\n' + rowstrings.join('\n')
+    }
 }
 
 function default_equal_arr(a, b, depth, max_depth) {
@@ -74,91 +138,31 @@ function default_equal_obj(a, b, depth, max_depth) {
 }
 
 function default_equal(a, b, depth, max_depth) {
-    if(a === b) {
+    if (a === b) {
         return true
     }
     var t = typeof(a)
-    if(t !== typeof(b)) {
+    if (t !== typeof(b)) {
         return false
     }
-    if(t === 'number' && isNaN(a)) {
+    if (t === 'number' && isNaN(a)) {
         return isNaN(b)
     }
-    if(t === 'object') {
-        if(depth >= max_depth) {
+    if (t === 'object') {
+        if (depth >= max_depth) {
             return false     // strict comparison gave false
         }
         var a_arr = Array.isArray(a)
         var b_arr = Array.isArray(b)
 
         if (a_arr && b_arr) {
-            return default_equal_arr(a, b, depth+1, max_depth)
+            return default_equal_arr(a, b, depth + 1, max_depth)
         } else if (!a_arr && !b_arr) {
-            return default_equal_obj(a, b, depth+1, max_depth)
+            return default_equal_obj(a, b, depth + 1, max_depth)
         } else {
             return false
         }
     }
-}
-
-// Return the [row, col] tuple of the first unequal data value found using strict compare on items and
-// on Object/Array elements.  For numbers, a isNaN(a) === isNaN(b) will consider two
-// NaN values equal (even though strictly speaking, equivalence of NaNs can't be known).
-// Return null if no cells are different.  Recurse to given max_depth (default depth 100).
-// Search is in order of rows, then in order of columns.
-// Headers are not compared.
-//
-// opt {
-//    equal: function(a, b, max_depth)   // optional custom equal function (which may or may not honor depth argument)
-//    max_depth                          // max_depth passed to equal function
-// }
-//
-TP.unequal_cell = function(tbl, opt) {
-    opt = opt || {}
-    var max_depth = opt.max_depth || (opt.max_depth === 0 ? 0 : 100)
-    var equal = opt.equal || default_equal
-
-    var a = this
-    var b = tbl
-    var aheader = a.header
-    var bheader = b.header
-    if(aheader.length !== bheader.length) {
-        return false
-    }
-
-    var arows = a.rows
-    var brows = b.rows
-    if(arows.length != brows.length) {
-        return false
-    }
-    var nrows = arows.length
-    var ncols = aheader.length
-    for(var ri = 0; ri < nrows; ri++) {
-        var arow = arows[ri]
-        var brow = brows[ri]
-        for(var ci=0; ci < ncols; ci++) {
-            if(!equal( arow[aheader[ci]], brow[bheader[ci]], 0, max_depth )) {
-                return [ri, ci]
-            }
-        }
-    }
-    return null
-}
-
-TP.equals = function(tbl) {
-    if(!default_equal_arr(this.header, tbl.header, 0, 1)) {
-        return false
-    }
-    return this.unequal_cell(tbl) === null
-}
-
-
-TP.toString = function () {
-    var header = this.header
-    var rowstrings = this.rows.map(function(row) {
-        return header.map(function(name){ return row[name] }).join(',')  // values as string
-    })
-    return header.join(',') + '\n' + rowstrings.join('\n')
 }
 
 // Create table from a matrix (array of arrays of data).

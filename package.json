@@ -1,6 +1,6 @@
 {
   "name": "test-table",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "a simple table for data-driven testing",
   "homepage": "https://github.com/quicbit-js/test-table",
   "url": "https://github.com/quicbit-js/test-table/issues",
