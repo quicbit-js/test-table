@@ -185,14 +185,25 @@ exports.from_data = function (data, opt) {
         header = new Array(data[0].length).fill(header).map( (s,i) => s.replace(/%d/, i) )
     }
 
-    var rows = data.map(function(r) {
-        if (r.length !== header.length) {
-            throw Error('number of columns should be consistent: ' + header.length + ' and ' + r.length)
+    let ret= new Table(header)
+    let Row = function(vals) {
+        vals.forEach((v,i) => {
+            this[header[i]] = v
+        })
+    }
+    Object.defineProperty(Row.prototype, '_table', { get: function() { return ret } } )
+    Object.defineProperty(Row.prototype, '_keys', { get: function()  { return ret.header } } )
+    Object.defineProperty(Row.prototype, '_vals', { get: function()  {
+        let self = this
+        return ret.header.map((k) => self[k])
+    }})
+
+    ret.rows = data.map((vals) => {
+        if (vals.length !== header.length) {
+            throw Error('number of columns should be consistent: ' + header.length + ' and ' + vals.length)
         }
-        return r.reduce(function(obj, v, i){
-            obj[header[i]] = v
-            return obj
-        }, {})
+        return new Row(vals)
     })
-    return new Table(header, rows)
+    // add these properties as prototype functions so they don't pollute the property space (when printing row objects etc)
+    return ret
 }

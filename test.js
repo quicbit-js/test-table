@@ -22,7 +22,23 @@ test('test-table: columns', function (t) {
     t.deepEqual(tbl.col('c'), [3, 'z'])
 })
 
-test('test-table: create with options', function(t) {
+test('test-table: rows', (t) => {
+    var tbl = table([
+        ['a', 'b', 'c'],
+        [1,    2,   3],
+        ['x', 'y', 'z']
+    ])
+
+    t.plan(6)
+    t.deepEqual(tbl.rows[0]._vals, [1,2,3])
+    t.deepEqual(tbl.rows[1]._vals, ['x','y','z'])
+    tbl.rows.forEach((r) => {
+        t.equal(r._table, tbl)
+        t.equal(r._keys, tbl.header)
+    })
+})
+
+test('test-table: create with options', (t) =>  {
     var data =  [
         [ 1, null,      'x' ],
         [ 2, '',        'y' ],
@@ -43,7 +59,7 @@ test('test-table: create with options', function(t) {
     })
 })
 
-test('test-table: unequal_cell', function(t) {
+test('test-table: unequal_cell', (t) =>  {
 
     var header = ['a', 'b', 'c']
     var data1 = [
