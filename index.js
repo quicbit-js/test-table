@@ -185,18 +185,21 @@ exports.from_data = function (data, opt) {
         header = new Array(data[0].length).fill(header).map( (s,i) => s.replace(/%d/, i) )
     }
 
-    let ret= new Table(header)
-    let Row = function(vals) {
-        vals.forEach((v,i) => {
-            this[header[i]] = v
-        })
+    let ret = new Table(header)
+    // by putting header information in Row prototype accessors, we keep row's own properties clean - easier inspection etc.
+    class Row {
+        constructor(vals) {
+            vals.forEach((v,i) => {
+                this[header[i]] = v
+            })
+        }
+
+        get _keys() { return header }
+        get _vals() {
+            let self = this
+            return header.map((k) => self[k])
+        }
     }
-    Object.defineProperty(Row.prototype, '_table', { get: function() { return ret } } )
-    Object.defineProperty(Row.prototype, '_keys', { get: function()  { return ret.header } } )
-    Object.defineProperty(Row.prototype, '_vals', { get: function()  {
-        let self = this
-        return ret.header.map((k) => self[k])
-    }})
 
     ret.rows = data.map((vals) => {
         if (vals.length !== header.length) {
@@ -204,6 +207,5 @@ exports.from_data = function (data, opt) {
         }
         return new Row(vals)
     })
-    // add these properties as prototype functions so they don't pollute the property space (when printing row objects etc)
     return ret
 }

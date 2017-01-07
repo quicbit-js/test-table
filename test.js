@@ -29,11 +29,10 @@ test('test-table: rows', (t) => {
         ['x', 'y', 'z']
     ])
 
-    t.plan(6)
+    t.plan(4)
     t.deepEqual(tbl.rows[0]._vals, [1,2,3])
     t.deepEqual(tbl.rows[1]._vals, ['x','y','z'])
     tbl.rows.forEach((r) => {
-        t.equal(r._table, tbl)
         t.equal(r._keys, tbl.header)
     })
 })
