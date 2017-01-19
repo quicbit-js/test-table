@@ -1,6 +1,6 @@
 var test = require('tape').test
 
-var table = require('.').from_data
+var table = require('.').create
 
 test('test-table: columns', function (t) {
     var tbl = table([
@@ -48,8 +48,9 @@ test('test-table: create with options', (t) =>  {
         table( data, { header: ['c_0','c_1','c_2'] } ),
         table( data, { header: 'c_%d' } ),
         table( [['c_0','c_1','c_2']].concat(data) ),
-        table( ['c_%d'].concat(data) )
+        table( ['c_%d'].concat(data) ),
     ]
+    tbls.push(table(tbls[0]))       // return same table
 
     t.plan(tbls.length)
 
