@@ -25,11 +25,11 @@ class Table {
     col_name(col) {
         switch (typeof(col)) {
             case 'number':
-                return header[col]
+                return this.header[col]
             case 'string':
                 return col
             default:
-                throw Error('cannot get column for ' + col)
+                err('cannot get column for ' + col)
         }
     }
 
@@ -38,6 +38,11 @@ class Table {
     val(row, col) {
         var row_obj = this.rows[row]
         return arguments.length === 1 ? row_obj : row_obj[this.col_name(col)]
+    }
+
+    vals(col) {
+        var cname = this.col_name(col)
+        return this.rows.map((r) => r[cname])
     }
 
     set_val(row, col, v) {
@@ -165,7 +170,9 @@ function default_equal(a, b, depth, max_depth) {
     }
 }
 
-function err(msg) { throw Error(msg) }
+function err(msg) {
+    throw Error(msg)
+}
 
 // Create table from a matrix (array of arrays of data).  If data is already a table, return that table
 // (similar to new Object(someObject)).
@@ -187,10 +194,16 @@ exports.create = function (data, opt) {
         data.constructor && data.constructor.name === 'Table' || err('unexpected object for create table')
         return data
     }
-    opt = opt || {}
-    var header = opt.header || data.shift()
+    opt = Object.assign({}, opt)
+    var header = opt.header
+    if(header == null) {
+        header = data[0]
+        data = data.slice(1)
+    }
     if(typeof(header) === 'string' ) {
         header = new Array(data[0].length).fill(header).map( (s,i) => s.replace(/%d/, i) ) // use header template: col_%d
+    } else {
+        Array.isArray(header) || err('unexpected opt.header value: ' + header)
     }
 
     let ret = new Table(header)
@@ -210,9 +223,7 @@ exports.create = function (data, opt) {
     }
 
     ret.rows = data.map((vals) => {
-        if (vals.length !== header.length) {
-            throw Error('number of columns should be consistent: ' + header.length + ' and ' + vals.length)
-        }
+        vals.length === header.length || err('expected ' + header.length + ' values, but got: ' + vals.length)
         return new Row(vals)
     })
     return ret

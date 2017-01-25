@@ -17,24 +17,35 @@ test('test-table: columns', function (t) {
 
     t.equal(tbl.col_index('b'), 1)
 
-    t.deepEqual(tbl.col('a'), [1, 'x'])
-    t.deepEqual(tbl.col('b'), [2, 'y'])
-    t.deepEqual(tbl.col('c'), [3, 'z'])
+    t.same(tbl.col('a'), [1, 'x'])
+    t.same(tbl.col('b'), [2, 'y'])
+    t.same(tbl.col('c'), [3, 'z'])
 })
 
-test('test-table: rows', (t) => {
-    var tbl = table([
+test('test-table: rows and vals', (t) => {
+    var data = [
         ['a', 'b', 'c'],
         [1,    2,   3],
         ['x', 'y', 'z']
-    ])
+    ]
+    var tbl = table(data)
 
-    t.plan(4)
-    t.deepEqual(tbl.rows[0]._vals, [1,2,3])
-    t.deepEqual(tbl.rows[1]._vals, ['x','y','z'])
-    tbl.rows.forEach((r) => {
-        t.equal(r._keys, tbl.header)
+    t.same(tbl.rows[0]._vals, [1,2,3])
+    t.same(tbl.rows[1]._vals, ['x','y','z'])
+    tbl.rows.forEach((row, ri) => {
+        t.same(row._keys, data[0])
+        t.same(row._vals, data[ri + 1])
+        data[ri].forEach((v, ci) => {
+            t.same(tbl.val(ri, ci),          data[ri+1][ci])
+            t.same(tbl.val(ri, data[0][ci]), data[ri+1][ci])
+        })
     })
+
+    t.same(tbl.vals(0), [1, 'x'])
+    t.same(tbl.vals('b'), [2, 'y'])
+    t.same(tbl.vals(2), [3, 'z'])
+
+    t.end()
 })
 
 test('test-table: create with options', (t) =>  {
@@ -78,10 +89,10 @@ test('test-table: unequal_cell', (t) =>  {
     var t1 = table( data1, {header: header} )
     var t2 = table( data2, {header: header} )
 
-    t.deepEqual(t1.unequal_cell(t2, {max_depth: 0}), [0, 1])
-    t.deepEqual(t1.unequal_cell(t2, {max_depth: 1}), [2, 1])
-    t.deepEqual(t1.unequal_cell(t2, {max_depth: 2}), null)
-    t.deepEqual(t1.unequal_cell(t2),                 null)
+    t.same(t1.unequal_cell(t2, {max_depth: 0}), [0, 1])
+    t.same(t1.unequal_cell(t2, {max_depth: 1}), [2, 1])
+    t.same(t1.unequal_cell(t2, {max_depth: 2}), null)
+    t.same(t1.unequal_cell(t2),                 null)
 
     // modify cells in t2 and check return cell coordinates
     for(var ri=0; ri<t1.length; ri++) {
@@ -89,9 +100,9 @@ test('test-table: unequal_cell', (t) =>  {
             var t2row = t2.rows[ri]
             var prev = t2row[col]
             t2row[col] = "ANOTHER VALUE"
-            t.deepEqual(t1.unequal_cell(t2), [ri, ci])
+            t.same(t1.unequal_cell(t2), [ri, ci])
             t2row[col] = prev
-            t.deepEqual(t1.unequal_cell(t2), null)
+            t.same(t1.unequal_cell(t2), null)
         })
     }
 
