@@ -4,45 +4,75 @@ A very simple table for data-driven testing.  test-table is provided through
 [quicbit-js/test-kit](http://github.com/quicbit-js/test-kit), but can be 
 used independently as well.
 
+## Install
 
-The table header is an array of strings (column names)
-Each row is an object with values stored under property names (matching header names).
-
+npm install test-table
 
 ## Usage
-Create a table like so:
- 
-     > var tbl = require('./test-table').fromData([
-         ['col-a', 'col-b', 'col-c'],
-         [1,    2,   3],
-         ['x', 'y', 'z']
-     ])
+
+You can create a table from an array of array values where the first 
+row has the column names:
+
+    > var createTable = require('test-table').create;
+    
+    > var tbl = createTable([
+          ['col-a', 'col-b', 'col-c'],
+          [1,    2,   3],
+          ['x', 'y', 'z']
+      ]);
      
-Access the header and rows properties:
+Access header and rows properties:
 
     > console.log(tbl.header)
-    [ 'col-a', 'col-b', 'col-c' ]
-
+      [ 'col-a', 'col-b', 'col-c' ]
     > console.log(tbl.rows[0])
-    { 'col-a': 1, 'col-b': 2, 'col-c': 3 }    
+      { col-a: 1, col-b: 2, col-c: 3 }    
 
-Use test-tables along with a simple framework like 'tape' to condense test cases 
-and create more coverage:
+Using **test-table** together with a simple framework like [tape](https://github.com/substack/tape) condenses test cases 
+and create more coverage.  Let's say we want to test a utility function count(s, v) function which 
+returns the number of occurences of substring v within string s:
 
-    require('tape').test('gnode: basic graph', function(t) {
-        var tbl = require(test-table).fromData([
-            [ 'obj', 'ncount', 'maxdepth' ],
-            [ {value:"a"}, 1, 0 ],
-            [ {value:"a",children:[]}, 1, 0],
-            [ {value:"a",children:[{value:"b"}]}, 2, 1 ],
-            [ {value:"a",children:[{value:"b"},{value:"c",children:[{value:"d"}]}]}, 4, 2 ]
-        ])
-        t.plan(tbl.length * 2)
-        tbl.rows.forEach(function(r) {
-            var g = gnode.fromObj(r.obj)
-            t.equals(g.nodecount(), r.ncount)
-            t.equals(g.maxdepth(), r.maxdepth)
+    var test = require('tape');     
+    var util = require('myutil');   // has the util.count(s, v) function to test
+
+    test('test-defaults: count', function(t) {
+        let tbl = t.table([
+            [ 's',             'v',   'expect' ],
+            [ '',             '10',         0  ],
+            [ '10',           '10',         1  ],
+            [ '101',          '10',         1  ],
+            [ '1010',         '10',         2  ],
+            [ '0100101001',    '0',         6  ],
+            [ '0100101001',    '1',         4  ],
+            [ '0100101001',   '10',         3  ],
+            [ '0100101001',  '100',         2  ],
+            [ '0100101001', '1000',         0  ],
+        ]);
+        t.plan(tbl.length);
+        tbl.forEach(function(r) {
+            t.equal(util.count(r.s, r.v), r.expect);
         })
+    })
+
+    
+Again, check out [test-kit](http://github.com/quicbit-js/test-kit) for ways to make  
+testing with tables even more concise:
+
+    var test = require('test-kit)(require('tape'))   // an enriched test harness 
+
+    test('test-defaults: count', function(t) {
+        t.tableAssert([
+            [ 's',             'v',   'expect' ],
+            [ '',             '10',         0  ],
+            [ '10',           '10',         1  ],
+            [ '101',          '10',         1  ],
+            [ '1010',         '10',         2  ],
+            [ '0100101001',    '0',         6  ],
+            [ '0100101001',    '1',         4  ],
+            [ '0100101001',   '10',         3  ],
+            [ '0100101001',  '100',         2  ],
+            [ '0100101001', '1000',         0  ],
+        ], require('myutil').count);
     })
 
 
