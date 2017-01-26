@@ -99,3 +99,41 @@ by default, equals will perform deep compare of arrays and objects (but not othe
 
 <code>equals()</code> checks that headers and row values are the same using the same
 comparisons as unequal_cell (returning true iff all cells are equal)
+
+## Header Generation
+
+If you find yourself with a wide matrix of data and no header, don't panic, you
+don't have to tediously create headers.  You can generate them with a template string:
+
+    var createTable = require('test-table').create
+    
+    var tbl = createTable(
+        [
+            [ 0.3,  3.2,   2.7,   2.5,   1.3,   4.2,   2.0 ],
+            [ 0.4,  3.1,   8.1,   2.5,   1.0,   5.2,   2.0 ],
+            [ 0.4,  3.3,   2.2,   2.5,   1.0,   4.6,   2.0 ],
+            [ 0.3,  3.0,   2.9,   2.5,   1.3,   5.2,   2.0 ],
+            [ 0.3,  3.2,   4.3,   2.5,   1.0,   5.2,   2.0 ],
+            [ 0.5,  4.2,   6.2,   2.5,   1.3,   4.6,   2.0 ],
+        ], 
+        { header: 'col_%d' }
+    );
+    
+The '%d' in the template will be replaced with the column number to generate headers:
+
+    > console.log(tbl.header);
+    [ 'col_0', 'col_1', 'col_2', 'col_3', 'col_4', 'col_5', 'col_6' ]
+
+A header template can also be used in lue of a header array:
+
+    var tbl = createTable(
+        [
+            'col_%d',
+            [ 0.3,  3.2,   2.7,   2.5,   1.3,   4.2,   2.0 ],
+            [ 0.4,  3.1,   8.1,   2.5,   1.0,   5.2,   2.0 ],
+            [ 0.4,  3.3,   2.2,   2.5,   1.0,   4.6,   2.0 ],
+            [ 0.3,  3.0,   2.9,   2.5,   1.3,   5.2,   2.0 ],
+            [ 0.3,  3.2,   4.3,   2.5,   1.0,   5.2,   2.0 ],
+            [ 0.5,  4.2,   6.2,   2.5,   1.3,   4.6,   2.0 ],
+        ] 
+    );
