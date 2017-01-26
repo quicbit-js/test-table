@@ -102,8 +102,8 @@ comparisons as unequal_cell (returning true iff all cells are equal)
 
 ## Header Generation
 
-If you find yourself with a wide matrix of data and no header, don't panic, you
-don't have to tediously create headers.  You can generate them with a template string:
+If you find yourself with a wide matrix of data and no header, test-table can generate
+the header for you using a template string:
 
     var createTable = require('test-table').create
     
