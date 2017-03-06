@@ -1,26 +1,27 @@
 // A simple table where each row is an object.  helps with data-driven testing.
 'use strict'
 
-class Table {
-    constructor(header, rows) {
+function Table(header, rows) {
         this.header = header
         this.rows = rows
-    }
+}
 
+Table.prototype = {
+    constructor: Table,
     col(name) {
         return this.rows.reduce(function (a, r) {
             a.push(r[name]);
             return a
         }, [])
-    }
+    },
 
     col_index(name) {
         return this.header.indexOf(name)
-    }
+    },
 
     get length() {
         return this.rows.length
-    }
+    },
 
     col_name(col) {
         switch (typeof(col)) {
@@ -31,19 +32,19 @@ class Table {
             default:
                 err('cannot get column for ' + col)
         }
-    }
+    },
 
-    // return the value at the given row (number) and column (number or string).
-    // if only row arg is given, return the entire row
+// return the value at the given row (number) and column (number or string).
+// if only row arg is given, return the entire row
     val(row, col) {
         var row_obj = this.rows[row]
         return arguments.length === 1 ? row_obj : row_obj[this.col_name(col)]
-    }
+    },
 
     vals(col) {
         var cname = this.col_name(col)
         return this.rows.map((r) => r[cname])
-    }
+    },
 
     set_val(row, col, v) {
         var row_obj = this.rows[row]
@@ -51,21 +52,21 @@ class Table {
         var prev = row_obj[row][cn]
         row_obj[cn] = v
         return prev
-    }
+    },
 
 
-    // Return the [row, col] tuple of the first unequal data value found using strict compare on items and
-    // on Object/Array elements.  For numbers, a isNaN(a) === isNaN(b) will consider two
-    // NaN values equal (even though strictly speaking, equivalence of NaNs can't be known).
-    // Return null if no cells are different.  Recurse to given max_depth (default depth 100).
-    // Search is in order of rows, then in order of columns.
-    // Headers are not compared.
-    //
-    // opt {
-    //    equal: function(a, b, max_depth)   // optional custom equal function (which may or may not honor depth argument)
-    //    max_depth                          // max_depth passed to equal function
-    // }
-    //
+// Return the [row, col] tuple of the first unequal data value found using strict compare on items and
+// on Object/Array elements.  For numbers, a isNaN(a) === isNaN(b) will consider two
+// NaN values equal (even though strictly speaking, equivalence of NaNs can't be known).
+// Return null if no cells are different.  Recurse to given max_depth (default depth 100).
+// Search is in order of rows, then in order of columns.
+// Headers are not compared.
+//
+// opt {
+//    equal: function(a, b, max_depth)   // optional custom equal function (which may or may not honor depth argument)
+//    max_depth                          // max_depth passed to equal function
+// }
+//
     unequal_cell(tbl, opt) {
         opt = opt || {}
         var max_depth = opt.max_depth || (opt.max_depth === 0 ? 0 : 100)
@@ -96,14 +97,14 @@ class Table {
             }
         }
         return null
-    }
+    },
 
     equals(tbl) {
         if(!default_equal_arr(this.header, tbl.header, 0, 1)) {
             return false
         }
         return this.unequal_cell(tbl) === null
-    }
+    },
 
     toString() {
         var header = this.header
@@ -113,6 +114,7 @@ class Table {
         return header.join(',') + '\n' + rowstrings.join('\n')
     }
 }
+
 
 function default_equal_arr(a, b, depth, max_depth) {
     var len = a.length
@@ -206,18 +208,18 @@ exports.create = function (data, opt) {
         Array.isArray(header) || err('unexpected opt.header value: ' + header)
     }
 
-    let ret = new Table(header)
+    var ret = new Table(header)
     // by putting header information in Row prototype accessors, we keep row's own properties clean - easier inspection etc.
-    class Row {
-        constructor(vals) {
-            vals.forEach((v,i) => {
-                this[header[i]] = v
-            })
-        }
-
-        get _keys() { return header }
+    function Row(vals) {
+        vals.forEach((v, i) => {
+            this[header[i]] = v
+        })
+    }
+    Row.prototype = {
+        constructor: Row,
+        get _keys() { return header },
         get _vals() {
-            let self = this
+            var self = this
             return header.map((k) => self[k])
         }
     }
