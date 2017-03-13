@@ -1,5 +1,12 @@
 # test-table
 
+[![npm][npm-image]][npm-url]
+[![downloads][downloads-image]][npm-url]
+
+[npm-image]:       https://img.shields.io/npm/v/test-table.svg
+[downloads-image]: https://img.shields.io/npm/dm/test-table.svg
+[npm-url]:         https://npmjs.org/package/test-table
+
 A very simple table for data-driven testing.  test-table is provided through
 [quicbit-js/test-kit](http://github.com/quicbit-js/test-kit), but can be 
 used independently as well.
