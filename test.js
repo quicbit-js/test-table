@@ -2,7 +2,7 @@ var test = require('tape').test
 
 var table = require('.').create
 
-test('test-table: columns', function (t) {
+test('columns', function (t) {
     var tbl = table([
         ['a', 'b', 'c'],
         [1,    2,   3],
@@ -15,14 +15,21 @@ test('test-table: columns', function (t) {
 
     t.equal(tbl.length, 2)
 
-    t.equal(tbl.col_index('b'), 1)
+    t.equal(tbl.colIndex('b'), 1)
 
     t.same(tbl.col('a'), [1, 'x'])
     t.same(tbl.col('b'), [2, 'y'])
     t.same(tbl.col('c'), [3, 'z'])
 })
 
-test('test-table: rows and vals', (t) => {
+test('errors', (t) => {
+    t.throws(() => table({}), /unexpected object/)
+    t.throws(() => table([{}]), /unexpected opt.header value/)
+    t.throws(() => table([['a','b'],[1]]), /expected 2 values/)
+    t.end()
+})
+
+test('rows and vals', (t) => {
     var data = [
         ['a', 'b', 'c'],
         [1,    2,   3],
@@ -48,7 +55,7 @@ test('test-table: rows and vals', (t) => {
     t.end()
 })
 
-test('test-table: create with options', (t) =>  {
+test('create with options', (t) =>  {
     var data =  [
         [ 1, null,      'x' ],
         [ 2, '',        'y' ],
@@ -70,7 +77,7 @@ test('test-table: create with options', (t) =>  {
     })
 })
 
-test('test-table: unequal_cell', (t) =>  {
+test('unequalCell', (t) =>  {
 
     var header = ['a', 'b', 'c']
     var data1 = [
@@ -89,10 +96,10 @@ test('test-table: unequal_cell', (t) =>  {
     var t1 = table( data1, {header: header} )
     var t2 = table( data2, {header: header} )
 
-    t.same(t1.unequal_cell(t2, {max_depth: 0}), [0, 1])
-    t.same(t1.unequal_cell(t2, {max_depth: 1}), [2, 1])
-    t.same(t1.unequal_cell(t2, {max_depth: 2}), null)
-    t.same(t1.unequal_cell(t2),                 null)
+    t.same(t1.unequalCell(t2, {max_depth: 0}), [0, 1])
+    t.same(t1.unequalCell(t2, {max_depth: 1}), [2, 1])
+    t.same(t1.unequalCell(t2, {max_depth: 2}), null)
+    t.same(t1.unequalCell(t2),                 null)
 
     // modify cells in t2 and check return cell coordinates
     for(var ri=0; ri<t1.length; ri++) {
@@ -100,9 +107,9 @@ test('test-table: unequal_cell', (t) =>  {
             var t2row = t2.rows[ri]
             var prev = t2row[col]
             t2row[col] = "ANOTHER VALUE"
-            t.same(t1.unequal_cell(t2), [ri, ci])
+            t.same(t1.unequalCell(t2), [ri, ci])
             t2row[col] = prev
-            t.same(t1.unequal_cell(t2), null)
+            t.same(t1.unequalCell(t2), null)
         })
     }
 

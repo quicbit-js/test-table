@@ -1,6 +1,6 @@
 {
   "name": "test-table",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "a simple table for data-driven testing",
   "homepage": "https://github.com/quicbit-js/test-table",
   "url": "https://github.com/quicbit-js/test-table/issues",
@@ -10,7 +10,8 @@
     "tape": "^4.4.0"
   },
   "scripts": {
-    "test": "tape test.js"
+    "test": "tape test.js",
+    "testc": "tap --coverage-report=html test.js"
   },
   "keywords": [
     "test",
