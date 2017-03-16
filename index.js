@@ -3,8 +3,8 @@
 
 function Table (header, rows) {
   var headerObj = {}
-  header.forEach(function(h) {
-    if (headerObj[h]) { err('header defined twice: ' + h)}
+  header.forEach(function (h) {
+    if (headerObj[h]) { err('header defined twice: ' + h) }
     headerObj[h] = true
   })
   this.header = header
@@ -45,7 +45,7 @@ Table.prototype = {
 
   vals: function (col) {
     var cname = this.colName(col)
-    return this.rows.map(function(r) { return r[cname] })
+    return this.rows.map(function (r) { return r[cname] })
   },
 
   setVal: function (row, col, v) {
@@ -119,13 +119,13 @@ Table.prototype = {
 
   // deprecated functions added here for backward-compatibility.
   // (do not comply with qb-standard)
-  col_index: function (name)          { return this.colIndex(name) },
-  col_name: function (col)            { return this.colName(col) },
-  set_val:   function (row, col, val) { return this.setVal(row, col, val) },
-  unequal_cell: function(tbl, opt)    { return this.unequalCell(tbl, opt) }
+  col_index: function (name) { return this.colIndex(name) },
+  col_name: function (col) { return this.colName(col) },
+  set_val: function (row, col, val) { return this.setVal(row, col, val) },
+  unequal_cell: function (tbl, opt) { return this.unequalCell(tbl, opt) }
 }
 
-Object.defineProperty(Table.prototype, 'length', { get: function() { return this.rows.length } })
+Object.defineProperty(Table.prototype, 'length', { get: function () { return this.rows.length } })
 
 function default_equal_arr (a, b, depth, max_depth) {
   var len = a.length
