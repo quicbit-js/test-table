@@ -30,7 +30,7 @@ Table.prototype = {
       case 'string':
         return col
       default:
-        err('cannot get column for ' + col)
+        err('cannot get column for type ' + typeof (col))
     }
   },
 
@@ -49,20 +49,28 @@ Table.prototype = {
   setVal (row, col, v) {
     var row_obj = this.rows[row]
     var cn = this.colName(col)
-    var prev = row_obj[row][cn]
+    var prev = row_obj[cn]
     row_obj[cn] = v
     return prev
   },
 
-  // Return the [row, col] tuple of the first unequal data value found using strict compare on items and
-  // on Object/Array elements.  For numbers, a isNaN(a) === isNaN(b) will consider two
-  // NaN values equal (even though strictly speaking, equivalence of NaNs can't be known).
-  // Return null if no cells are different.  Recurse to given max_depth (default depth 100).
-  // Search is in order of rows, then in order of columns.
-  // Headers are not compared.
+  // Return the [row, col] tuple of the first unequal data value found
+  // using *positional* traversal (i.e. ignoring header names) and
+  // traversing by row then by column (i.e. columns 0 to max in row 0,
+  // columns 0 to max in row 1...)
+  //
+  // Uses a provided opt.equal function for comparison, or the default
+  // compare which:
+  //
+  //        compares object and array values up to given opt.max_depth
+  //        considers two NaN values equal
+  //        For object and array comparison where max_depth has been met,
+  //          the result is the strict equals (===) of values
+  //
+  // Return null if no cells are different.
   //
   // opt {
-  //    equal: function(a, b, max_depth)   // optional custom equal function (which may or may not honor depth argument)
+  //    equal: function(a, b, depth, max_depth)   // optional custom equal function (which may or may not honor depth argument)
   //    max_depth                          // max_depth passed to equal function
   // }
   //
@@ -75,20 +83,14 @@ Table.prototype = {
     var b = tbl
     var aheader = a.header
     var bheader = b.header
-    if (aheader.length !== bheader.length) {
-      return false
-    }
 
     var arows = a.rows
     var brows = b.rows
-    if (arows.length !== brows.length) {
-      return false
-    }
-    var nrows = arows.length
-    var ncols = aheader.length
+    var nrows = Math.max(arows.length, brows.length)
+    var ncols = Math.max(aheader.length, bheader.length)
     for (var ri = 0; ri < nrows; ri++) {
-      var arow = arows[ri]
-      var brow = brows[ri]
+      var arow = arows[ri] || {}    // gracefully handle different row length
+      var brow = brows[ri] || {}
       for (var ci = 0; ci < ncols; ci++) {
         if (!equal(arow[aheader[ci]], brow[bheader[ci]], 0, max_depth)) {
           return [ri, ci]
@@ -135,7 +137,7 @@ function default_equal_obj (a, b, depth, max_depth) {
   var len = keys.length
   for (var ki = 0; ki < len; ki++) {
     var key = keys[ki]
-    if (!default_equal(a[key], b[[key]], depth, max_depth)) {
+    if (!default_equal(a[key], b[key], depth, max_depth)) {
       return false
     }
   }
@@ -207,7 +209,10 @@ exports.create = function (data, opt) {
   }
 
   var ret = new Table(header)
-    // by putting header information in Row prototype accessors, we keep row's own properties clean - easier inspection etc.
+  // Row properties start with normal (non-underbar) char.  Accessor functions
+  // are underbar prefixed and located on prototype.  This namespace
+  // compromise makes rows inspection/debug friendly because they look and behave
+  // like simple property objects.
   function Row (vals) {
     vals.forEach((v, i) => {
       this[header[i]] = v
