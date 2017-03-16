@@ -20,7 +20,8 @@ A very simple table for data-driven testing.  test-table is provided through
 [quicbit-js/test-kit](http://github.com/quicbit-js/test-kit), but can be 
 used independently as well.
 
-Complies with [qb-standard](http://github.com/quicbit-js/qb-standard)!
+Complies with the 100% test coverage and minimum dependency requirements of 
+[qb-standard](http://github.com/quicbit-js/qb-standard) . 
 
 ## Install
 
