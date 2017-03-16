@@ -20,9 +20,9 @@ npm install test-table
 You can create a table from an array of array values where the first 
 row has the column names:
 
-    > var createTable = require('test-table').create;
+    > var table = require('test-table').create;
     
-    > var tbl = createTable([
+    > var tbl = table([
           ['col-a', 'col-b', 'col-c'],
           [1,    2,   3],
           ['x', 'y', 'z']
@@ -62,8 +62,8 @@ returns the number of occurences of substring v within string s:
     })
 
     
-Again, check out [test-kit](http://github.com/quicbit-js/test-kit) for ways to make  
-testing with tables even more concise:
+Check out [test-kit](http://github.com/quicbit-js/test-kit) for more ways to  
+make testing even more concise:
 
     var test = require('test-kit)(require('tape'))   // an enriched test harness 
 
@@ -85,20 +85,20 @@ testing with tables even more concise:
 
 ## Table Comparison
 
-Comparing tables and/or showing first difference can be handy in testing.  test-table
+Comparing tables and/or showing first difference can be helpful in testing.  test-table
 has a couple functions for this:
 
 
 <code>unequal_cell()</code> returns the <code>\[row, col\]</code> location of the first differing 
 cell value found between two given tables:
 
-    table1.unequal_cell(table2, options) '
+    table1.unequalCell(table2, options) '
     
 ... where options can provide
 
     {
-       equal: function(a, b, max_depth)   // custom equal function (which may or may not honor depth argument)
-       max_depth                          // max_depth passed to equal function
+       equal: function (a, b, depth, max_depth)   // custom equal function (which may or may not honor depth argument)
+       max_depth                                  // max_depth passed to equal function
     }
 
 by default, equals will perform deep compare of arrays and objects (but not other types like dates).
@@ -112,9 +112,9 @@ comparisons as unequal_cell (returning true iff all cells are equal)
 If you find yourself with a wide matrix of data and no header, test-table can generate
 the header for you using a template string:
 
-    var createTable = require('test-table').create
+    var table = require('test-table').create
     
-    var tbl = createTable(
+    var tbl = table(
         [
             [ 0.3,  3.2,   2.7,   2.5,   1.3,   4.2,   2.0 ],
             [ 0.4,  3.1,   8.1,   2.5,   1.0,   5.2,   2.0 ],
@@ -133,7 +133,7 @@ The '%d' in the template will be replaced with the column number to generate hea
 
 A header template can also be used in lue of a header array:
 
-    var tbl = createTable(
+    var tbl = table(
         [
             'col_%d',
             [ 0.3,  3.2,   2.7,   2.5,   1.3,   4.2,   2.0 ],
