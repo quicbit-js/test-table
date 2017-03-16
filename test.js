@@ -23,6 +23,7 @@ test('columns', function (t) {
 })
 
 test('errors', (t) => {
+    t.throws(() => table([['a','b','b']], /header defined twice/))
     t.throws(() => table({}), /unexpected object/)
     t.throws(() => table([{}]), /unexpected opt.header value/)
     t.throws(() => table([['a','b'],[1]]), /expected 2 values/)
@@ -89,23 +90,23 @@ test('create with options', (t) =>  {
 })
 
 test('unequalCell', (t) =>  {
-
-    var header = ['a', 'b', 'c']
     var data1 = [
-        [ 1,        {g:1, h:2},     3 ],
-        ['x',      '',             'z'],
-        [NaN,      [1,{q:7}],       null],
+        [ 'a',     'b',            'c'   ],
+        [ 1,        {g:1, h:2},     3    ],
+        ['x',      '',             'z'   ],
+        [NaN,      [1,{q:7}],       null ],
     ]
 
     // same values data1, but not strictly equal
     var data2 = [
-        [ 1,        {g:1, h:2},     3 ],
-        ['x',      '',              'z'],
-        [NaN,      [1,{q:7}],       null],
+        [ 'a',     'b',            'c'   ],
+        [ 1,        {g:1, h:2},     3    ],
+        ['x',      '',              'z'  ],
+        [NaN,      [1,{q:7}],       null ],
     ]
 
-    var t1 = table( data1, {header: header} )
-    var t2 = table( data2, {header: header} )
+    var t1 = table( data1 )
+    var t2 = table( data2 )
 
     t.same(t1.unequalCell(t2, {max_depth: 0}), [0, 1])
     t.same(t1.unequalCell(t2, {max_depth: 1}), [2, 1])
@@ -113,6 +114,7 @@ test('unequalCell', (t) =>  {
     t.same(t1.unequalCell(t2),                 null)
 
     // modify cells in t2 and check return cell coordinates
+    var header = t1.header
     for(var ri=0; ri<t1.length; ri++) {
         header.forEach(function(col, ci) {
             var t2row = t2.rows[ri]

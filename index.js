@@ -2,6 +2,11 @@
 'use strict'
 
 function Table (header, rows) {
+  var headerObj = {}
+  header.forEach(function(h) {
+    if (headerObj[h]) { err('header defined twice: ' + h)}
+    headerObj[h] = true
+  })
   this.header = header
   this.rows = rows
 }
@@ -192,7 +197,7 @@ function err (msg) {
 //
 exports.create = function (data, opt) {
   if (!Array.isArray(data)) {
-        // Return table objects as-is
+    // Return table objects as-is
     data.constructor && data.constructor.name === 'Table' || err('unexpected object for create table')
     return data
   }
