@@ -13,22 +13,19 @@ function Table (header, rows) {
 
 Table.prototype = {
   constructor: Table,
-  col (name) {
+
+  col: function (name) {
     return this.rows.reduce(function (a, r) {
       a.push(r[name])
       return a
     }, [])
   },
 
-  colIndex (name) {
+  colIndex: function (name) {
     return this.header.indexOf(name)
   },
 
-  get length () {
-    return this.rows.length
-  },
-
-  colName (col) {
+  colName: function (col) {
     switch (typeof (col)) {
       case 'number':
         return this.header[col]
@@ -41,17 +38,17 @@ Table.prototype = {
 
   // return the value at the given row (number) and column (number or string).
   // if only row arg is given, return the entire row
-  val (row, col) {
+  val: function (row, col) {
     var row_obj = this.rows[row]
     return arguments.length === 1 ? row_obj : row_obj[this.colName(col)]
   },
 
-  vals (col) {
+  vals: function (col) {
     var cname = this.colName(col)
-    return this.rows.map((r) => r[cname])
+    return this.rows.map(function(r) { return r[cname] })
   },
 
-  setVal (row, col, v) {
+  setVal: function (row, col, v) {
     var row_obj = this.rows[row]
     var cn = this.colName(col)
     var prev = row_obj[cn]
@@ -79,7 +76,7 @@ Table.prototype = {
   //    max_depth                          // max_depth passed to equal function
   // }
   //
-  unequalCell (tbl, opt) {
+  unequalCell: function (tbl, opt) {
     opt = opt || {}
     var max_depth = opt.max_depth || (opt.max_depth === 0 ? 0 : 100)
     var equal = opt.equal || default_equal
@@ -105,21 +102,30 @@ Table.prototype = {
     return null
   },
 
-  equals (tbl) {
+  equals: function (tbl) {
     if (!default_equal_arr(this.header, tbl.header, 0, 1)) {
       return false
     }
     return this.unequalCell(tbl) === null
   },
 
-  toString () {
+  toString: function () {
     var header = this.header
     var rowstrings = this.rows.map(function (row) {
       return header.map(function (name) { return row[name] }).join(',')  // values as string
     })
     return header.join(',') + '\n' + rowstrings.join('\n')
-  }
+  },
+
+  // deprecated functions added here for backward-compatibility.
+  // (do not comply with qb-standard)
+  col_index: function (name)          { return this.colIndex(name) },
+  col_name: function (col)            { return this.colName(col) },
+  set_val:   function (row, col, val) { return this.setVal(row, col, val) },
+  unequal_cell: function(tbl, opt)    { return this.unequalCell(tbl, opt) }
 }
+
+Object.defineProperty(Table.prototype, 'length', { get: function() { return this.rows.length } })
 
 function default_equal_arr (a, b, depth, max_depth) {
   var len = a.length
@@ -136,7 +142,7 @@ function default_equal_arr (a, b, depth, max_depth) {
 
 function default_equal_obj (a, b, depth, max_depth) {
   var keys = Object.keys(a)
-  if (!default_equal_arr(keys, Object.keys(b), depth, Number.MAX_SAFE_INTEGER)) {
+  if (!default_equal_arr(keys, Object.keys(b), depth, max_depth)) {
     return false
   }
   var len = keys.length
@@ -208,7 +214,10 @@ exports.create = function (data, opt) {
     data = data.slice(1)
   }
   if (typeof (header) === 'string') {
-    header = new Array(data[0].length).fill(header).map((s, i) => s.replace(/%d/, i)) // use header template: col_%d
+    // use header template: col_%d
+    header = new Array(data[0].length).fill(header).map(
+      function (s, i) { return s.replace(/%d/, i) }
+    )
   } else {
     Array.isArray(header) || err('unexpected opt.header value: ' + header)
   }
@@ -219,8 +228,9 @@ exports.create = function (data, opt) {
   // compromise makes rows inspection/debug friendly because they look and behave
   // like simple property objects.
   function Row (vals) {
-    vals.forEach((v, i) => {
-      this[header[i]] = v
+    var self = this
+    vals.forEach(function (v, i) {
+      self[header[i]] = v
     })
   }
   Row.prototype = {
@@ -228,11 +238,11 @@ exports.create = function (data, opt) {
     get _keys () { return header },
     get _vals () {
       var self = this
-      return header.map((k) => self[k])
+      return header.map(function (k) { return self[k] })
     }
   }
 
-  ret.rows = data.map((vals) => {
+  ret.rows = data.map(function (vals) {
     vals.length === header.length || err('expected ' + header.length + ' values, but got: ' + vals.length)
     return new Row(vals)
   })

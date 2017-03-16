@@ -15,6 +15,17 @@ used independently as well.
 
 npm install test-table
 
+## API Update 1.x -> 2.x
+
+test-table has been updated to comply 
+with [qb-standard](http://github.com/quicbit-js/qb-standard), meaning that
+it has 100% test and branch coverage and functions on objects (using 'this') 
+are now camelCase (previous snake_case names are available in version 2.1.0 for 
+backward-compatibility).  
+In adding the tests, some unreported 
+bugs were found and fixed specifically with some comparisons of unequalCell().
+
+
 ## Usage
 
 You can create a table from an array of array values where the first 

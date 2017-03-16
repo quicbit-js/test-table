@@ -22,6 +22,24 @@ test('columns', function (t) {
     t.same(tbl.col('c'), [3, 'z'])
 })
 
+test('deprecated', (t) => {
+    var t1 = table([
+        ['a', 'b', 'c'],
+        [1,    2,   3],
+        ['x', 'y', 'z']
+    ])
+    t.same( t1.unequal_cell(table([
+        ['a','b','c'],
+        [ 1, 1, 1],
+    ])), [0,1])
+
+    t.same( t1.set_val(1,0), 'x')
+
+    t.same( t1.col_name(2), 'c')
+    t.same( t1.col_index('c'), 2)
+    t.end()
+})
+
 test('errors', (t) => {
     t.throws(() => table([['a','b','b']], /header defined twice/))
     t.throws(() => table({}), /unexpected object/)
