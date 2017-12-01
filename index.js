@@ -56,6 +56,23 @@ Table.prototype = {
     return prev
   },
 
+  get data() {
+    var h = this.header
+    return this.rows.map(function (r) {
+      return h.map(function (n) { return r[n] })
+    })
+  },
+
+  // return a new table in the given column range (same range selection as Array.prototype.slice
+  // allowings negative args)
+  slice: function (beg, end) {
+    var h = this.header.slice(beg, end)
+    var data = this.rows.map(function (r) {
+      return h.map(function (n) { return r[n] })
+    })
+    return create (data, {header: h})
+  },
+
   // Return the [row, col] tuple of the first unequal data value found
   // using *positional* traversal (i.e. ignoring header names) and
   // traversing by row then by column (i.e. columns 0 to max in row 0,
@@ -201,7 +218,7 @@ function err (msg) {
 //     var tbl = table.create( [ 'c_%d', [1, 2], [3, 4] ] )
 //
 //
-exports.create = function (data, opt) {
+function create (data, opt) {
   if (!Array.isArray(data)) {
     // Return table objects as-is
     data.constructor && data.constructor.name === 'Table' || err('unexpected object for create table')
@@ -248,4 +265,5 @@ exports.create = function (data, opt) {
   })
   return ret
 }
-exports.from_data = exports.create   // backwards compatible
+exports.create = create
+exports.from_data = create   // backwards compatible

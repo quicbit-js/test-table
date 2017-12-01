@@ -22,7 +22,7 @@ test('columns', function (t) {
   t.same(tbl.col('c'), [3, 'z'])
 })
 
-test('deprecated', (t) => {
+test('deprecated', function (t) {
   var t1 = table([
     [ 'a', 'b', 'c' ],
     [ 1, 2, 3 ],
@@ -40,7 +40,7 @@ test('deprecated', (t) => {
   t.end()
 })
 
-test('errors', (t) => {
+test('errors', function (t) {
   t.throws(() => table([['a', 'b', 'b']], /header defined twice/))
   t.throws(() => table({}), /unexpected object/)
   t.throws(() => table([{}]), /unexpected opt.header value/)
@@ -56,7 +56,7 @@ test('errors', (t) => {
   t.end()
 })
 
-test('rows and vals', (t) => {
+test('rows and vals', function (t) {
   var data = [
     ['a', 'b', 'c'],
     [1, 2, 3],
@@ -85,7 +85,7 @@ test('rows and vals', (t) => {
   t.end()
 })
 
-test('create with options', (t) => {
+test('create with options', function (t) {
   var data = [
     [ 1, null, 'x' ],
     [ 2, '', 'y' ],
@@ -107,7 +107,7 @@ test('create with options', (t) => {
   })
 })
 
-test('unequalCell', (t) => {
+test('unequalCell', function (t) {
   var data1 = [
     [ 'a', 'b', 'c' ],
     [ 1, {g: 1, h: 2}, 3 ],
@@ -168,7 +168,7 @@ test('unequalCell', (t) => {
   t.end()
 })
 
-test('unequalCell- slight differences', (t) => {
+test('unequalCell- slight differences', function (t) {
   var t1 = table([
     [ 'a', 'b' ],
     [ 1, null ]
@@ -196,7 +196,7 @@ test('unequalCell- slight differences', (t) => {
   t.end()
 })
 
-test('equal', (t) => {
+test('equal', function (t) {
   var header = ['a', 'b', 'c']
   var data1 = [
     [ 1, {g: 1, h: 2}, 3 ],
@@ -225,6 +225,37 @@ test('equal', (t) => {
     [ NaN, [1], null ]
   ])
   t.same(t1.equals(t4), false)
+
+  t.end()
+})
+
+test('slice and data', function (t) {
+  var t1 = table([
+    ['a','b','c'],
+    [ 1,  2,  3 ],
+    [ 4,  5,  6 ],
+  ])
+
+  t.same(t1.slice(0).header, ['a','b','c'])
+  t.same(t1.slice(0).data, [[1,2,3],[4,5,6]])
+  t.same(t1.slice(-3).data, [[1,2,3],[4,5,6]])
+  t.same(t1.slice(-4).data, [[1,2,3],[4,5,6]])
+
+  t.same(t1.slice(1).header, ['b','c'])
+  t.same(t1.slice(1).data, [[2,3],[5,6]])
+  t.same(t1.slice(-2).data, [[2,3],[5,6]])
+
+  t.same(t1.slice(2).header, ['c'])
+  t.same(t1.slice(2).data, [[3],[6]])
+  t.same(t1.slice(-1).data, [[3],[6]])
+
+  t.same(t1.slice(3).header, [])
+  t.same(t1.slice(3).data, [[],[]])
+  t.same(t1.slice(4).data, [[],[]])
+
+  t.same(t1.slice(1,-1).header, ['b'])
+  t.same(t1.slice(-2,-1).header, ['b'])
+  t.same(t1.slice(-2,-3).header, [])
 
   t.end()
 })
