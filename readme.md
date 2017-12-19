@@ -121,10 +121,15 @@ is returned.
 
 return the column index for the given column name.
 
-## slice (beg, end)
+## tcols (beg, end)
 
-return a new table in the given column range (uses same range selection as Array.prototype.slice
-and allows negative args as offsets from end)
+return a new table in the given column range using the same range selection as Array.prototype.slice
+(which allows negative args as offsets from end)
+
+## trows (beg, end)
+
+return a new table in the given row range using the same range selection as Array.prototype.slice
+(which allows negative args as offsets from end)
 
 ## data () 
 
@@ -143,10 +148,6 @@ Set cell for the given row (integer) and column (name or integer) to v.
 
 Return all the values in the given row (name or integer) as an array.
 
-## col (name) : deprecated
-
-Same as vals
-
 ## unequal_cell (tbl, opt)
 
 Compare a table with another table row-by-row (tbl) and return a <code>[row, column]</code> tuple 
@@ -154,14 +155,19 @@ indicating the first cell (i.e. the lowest number row and column) that is differ
 
 opt
 
-    max_depth - integer.  nested object/array depth at which we give up on equivalence comparison
-                *and returns false* when giving up.
+    max_depth - integer.  nested object/array depth at which depth false will be returned for object
+            or array values that are not strictly equal.
 
     equal - function (a, b, depth, maxdepth), allows you to provide a custom function for comparing
             nested data (objects/arrays) The comparison can take depth into account.  
             The default comparison recursively
             compares object and array contents by type and then by strict '===' comparison,
             returning *false* if max_depth is met.  However, returns true for two isNaN numbers.
+            
+## Deprecated Functions
+
+### col (name) : use "vals(idx_or_name)" instead
+### slice (beg, end) : use "tcols(beg, end)" instead
 
 ## Table Comparison
 

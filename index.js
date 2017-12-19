@@ -54,7 +54,7 @@ Table.prototype = {
     })
   },
 
-  slice: function (beg, end) {
+  tcols: function (beg, end) {
     var h = this.header.slice(beg, end)
     var data = this.rows.map(function (r) {
       return h.map(function (n) { return r[n] })
@@ -62,26 +62,12 @@ Table.prototype = {
     return create (data, {header: h})
   },
 
-  // Return the [row, col] tuple of the first unequal data value found
-  // using *positional* traversal (i.e. ignoring header names) and
-  // traversing by row then by column (i.e. columns 0 to max in row 0,
-  // columns 0 to max in row 1...)
-  //
-  // Uses a provided opt.equal function for comparison, or the default
-  // compare which:
-  //
-  //        compares object and array values up to given opt.max_depth
-  //        considers two NaN values equal
-  //        For object and array comparison where max_depth has been met,
-  //          the result is the strict equals (===) of values
-  //
-  // Return null if no cells are different.
-  //
-  // opt {
-  //    equal: function(a, b, depth, max_depth)   // optional custom equal function (which may or may not honor depth argument)
-  //    max_depth                          // max_depth passed to equal function
-  // }
-  //
+  trows: function (beg, end) {
+    var h = this.header.slice()
+    var data = this.rows.slice(beg, end).map(function (r) { return h.map(function (n) { return r[n] })})
+    return create(data, {header: this.header.slice()})
+  },
+
   unequal_cell: function (tbl, opt) {
     opt = opt || {}
     var max_depth = opt.max_depth == null ? 100 : opt.max_depth
@@ -129,6 +115,7 @@ Table.prototype = {
   setVal: function (row, col, val) { return this.set_val(row, col, val) },
   unequalCell: function (tbl, opt) { return this.unequal_cell(tbl, opt) },
   col: function (name) { return this.vals(name) },
+  slice: function (beg, end) { return this.tcols(beg, end) }
 }
 
 Object.defineProperty(Table.prototype, 'length', { get: function () { return this.rows.length } })

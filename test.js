@@ -26,9 +26,10 @@ test('deprecated functions', function (t) {
 
   t.same(t1.setVal(1, 0), 'x')
 
-  t.same(t1.colName(2), 'c')
-  t.same(t1.colIndex('c'), 2)
-  t.same(t1.col('b'), [2,'y'])
+  t.same(t1.colName(2), t1.col_name(2))
+  t.same(t1.colIndex('c'), t1.col_index('c'))
+  t.same(t1.col('b'), t1.vals('b'))
+  t.same(t1.slice('c'), t1.tcols('c'))
   t.end()
 })
 
@@ -222,33 +223,51 @@ test('equal', function (t) {
   t.end()
 })
 
-test('slice and data', function (t) {
+test('tcols', function (t) {
   var t1 = table([
     ['a','b','c'],
     [ 1,  2,  3 ],
     [ 4,  5,  6 ],
   ])
 
-  t.same(t1.slice(0).header, ['a','b','c'])
-  t.same(t1.slice(0).data, [[1,2,3],[4,5,6]])
-  t.same(t1.slice(-3).data, [[1,2,3],[4,5,6]])
-  t.same(t1.slice(-4).data, [[1,2,3],[4,5,6]])
+  t.same(t1.tcols(0).header, ['a','b','c'])
+  t.same(t1.tcols(0).data, [[1,2,3],[4,5,6]])
+  t.same(t1.tcols(-3).data, [[1,2,3],[4,5,6]])
+  t.same(t1.tcols(-4).data, [[1,2,3],[4,5,6]])
 
-  t.same(t1.slice(1).header, ['b','c'])
-  t.same(t1.slice(1).data, [[2,3],[5,6]])
-  t.same(t1.slice(-2).data, [[2,3],[5,6]])
+  t.same(t1.tcols(1).header, ['b','c'])
+  t.same(t1.tcols(1).data, [[2,3],[5,6]])
+  t.same(t1.tcols(-2).data, [[2,3],[5,6]])
 
-  t.same(t1.slice(2).header, ['c'])
-  t.same(t1.slice(2).data, [[3],[6]])
-  t.same(t1.slice(-1).data, [[3],[6]])
+  t.same(t1.tcols(2).header, ['c'])
+  t.same(t1.tcols(2).data, [[3],[6]])
+  t.same(t1.tcols(-1).data, [[3],[6]])
 
-  t.same(t1.slice(3).header, [])
-  t.same(t1.slice(3).data, [[],[]])
-  t.same(t1.slice(4).data, [[],[]])
+  t.same(t1.tcols(3).header, [])
+  t.same(t1.tcols(3).data, [[],[]])
+  t.same(t1.tcols(4).data, [[],[]])
 
-  t.same(t1.slice(1,-1).header, ['b'])
-  t.same(t1.slice(-2,-1).header, ['b'])
-  t.same(t1.slice(-2,-3).header, [])
+  t.same(t1.tcols(1,-1).header, ['b'])
+  t.same(t1.tcols(-2,-1).header, ['b'])
+  t.same(t1.tcols(-2,-3).header, [])
+
+  t.end()
+})
+
+test('trows', function (t) {
+  var t1 = table([
+    ['a','b'],
+    [ 1,  2 ],
+    [ 3,  4 ],
+    [ 5,  6 ],
+  ])
+
+  t.same(t1.trows().header, ['a','b'])
+  t.same(t1.trows().data, [[1,2], [3,4], [5,6]])
+  t.same(t1.trows(0,1).data, [[1,2]])
+  t.same(t1.trows(1,2).data, [[3,4]])
+  t.same(t1.trows(2,3).data, [[5,6]])
+  t.same(t1.trows(-1).data, [[5,6]])
 
   t.end()
 })
