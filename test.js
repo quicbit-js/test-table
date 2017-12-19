@@ -1,29 +1,20 @@
-let test = require('tape').test
+var test = require('tape').test
 
-let table = require('.').create
+var table = require('.').create
 
-test('columns', function (t) {
-  let tbl = table([
-        ['a', 'b', 'c'],
-        [1, 2, 3],
-        ['x', 'y', 'z']
+
+test('toString', function (t) {
+  var tbl = table([
+    [ 'a', 'b', 'c' ],
+    [ 1, 2, 3 ],
+    [ 'x', 'y', 'z' ]
   ])
-
-  t.plan(6)
-
   t.equal(tbl.toString(), 'a,b,c\n1,2,3\nx,y,z')
-
-  t.equal(tbl.length, 2)
-
-  t.equal(tbl.col_index('b'), 1)
-
-  t.same(tbl.col('a'), [1, 'x'])
-  t.same(tbl.col('b'), [2, 'y'])
-  t.same(tbl.col('c'), [3, 'z'])
+  t.end()
 })
 
-test('deprecated', function (t) {
-  let t1 = table([
+test('deprecated functions', function (t) {
+  var t1 = table([
     [ 'a', 'b', 'c' ],
     [ 1, 2, 3 ],
     [ 'x', 'y', 'z' ]
@@ -37,39 +28,40 @@ test('deprecated', function (t) {
 
   t.same(t1.colName(2), 'c')
   t.same(t1.colIndex('c'), 2)
+  t.same(t1.col('b'), [2,'y'])
   t.end()
 })
 
 test('errors', function (t) {
-  t.throws(() => table([['a', 'b', 'b']], /header defined twice/))
-  t.throws(() => table({}), /unexpected object/)
-  t.throws(() => table([{}]), /unexpected opt.header value/)
-  t.throws(() => table([['a', 'b'], [1]]), /expected 2 values/)
+  t.throws(function () { table([['a', 'b', 'b']] ) }, /header defined twice/)
+  t.throws(function () { table({}) }, /unexpected object/)
+  t.throws(function () { table([{}]) }, /unexpected opt.header value/)
+  t.throws(function () { table([['a', 'b'], [1]]) }, /expected 2 values/)
 
-  let tbl = table([
+  var tbl = table([
     ['a', 'b', 'c'],
     [1, 2, 3],
     ['x', 'y', 'z']
   ])
 
-  t.throws(() => tbl.col_name([]), /cannot get column for type/)
+  t.throws(function () { tbl.col_name([]) }, /cannot get column for type/)
   t.end()
 })
 
 test('rows and vals', function (t) {
-  let data = [
+  var data = [
     ['a', 'b', 'c'],
     [1, 2, 3],
     ['x', 'y', 'z']
   ]
-  let tbl = table(data)
+  var tbl = table(data)
 
   t.same(tbl.rows[0]._vals, [1, 2, 3])
   t.same(tbl.rows[1]._vals, ['x', 'y', 'z'])
-  tbl.rows.forEach((row, ri) => {
+  tbl.rows.forEach(function (row, ri) {
     t.same(row._keys, data[0])
     t.same(row._vals, data[ri + 1])
-    data[ri].forEach((v, ci) => {
+    data[ri].forEach(function (v, ci) {
       t.same(tbl.val(ri, ci), data[ri + 1][ci])
       t.same(tbl.val(ri, data[0][ci]), data[ri + 1][ci])
     })
@@ -78,6 +70,7 @@ test('rows and vals', function (t) {
   t.same(tbl.vals(0), [1, 'x'])
   t.same(tbl.vals('b'), [2, 'y'])
   t.same(tbl.vals(2), [3, 'z'])
+
   t.same(tbl.val(1), tbl.rows[1])
   t.same(tbl.set_val(1, 1, 'yy'), 'y')
   t.same(tbl.set_val(1, 1, 'y'), 'yy')
@@ -86,13 +79,13 @@ test('rows and vals', function (t) {
 })
 
 test('create with options', function (t) {
-  let data = [
+  var data = [
     [ 1, null, 'x' ],
     [ 2, '', 'y' ],
     [ 3, undefined, 'z' ]
   ]
 
-  let tbls = [
+  var tbls = [
     table(data, { header: ['c_0', 'c_1', 'c_2'] }),
     table(data, { header: 'c_%d' }),
     table([['c_0', 'c_1', 'c_2']].concat(data)),
@@ -102,13 +95,13 @@ test('create with options', function (t) {
 
   t.plan(tbls.length)
 
-  tbls.forEach((tbl) => {
+  tbls.forEach(function (tbl) {
     t.true(tbl.equals(tbls[0]))
   })
 })
 
 test('unequal_cell', function (t) {
-  let data1 = [
+  var data1 = [
     [ 'a', 'b', 'c' ],
     [ 1, {g: 1, h: 2}, 3 ],
     [ 'x', '', 'z' ],
@@ -116,15 +109,15 @@ test('unequal_cell', function (t) {
   ]
 
     // same values data1, but not strictly equal
-  let data2 = [
+  var data2 = [
     [ 'a', 'b', 'c' ],
     [ 1, {g: 1, h: 2}, 3 ],
     [ 'x', '', 'z' ],
     [ NaN, [1, {q: 7}], null ]
   ]
 
-  let t1 = table(data1)
-  let t2 = table(data2)
+  var t1 = table(data1)
+  var t2 = table(data2)
 
   t.same(t1.unequal_cell(t2, {max_depth: 0}), [0, 1])
   t.same(t1.unequal_cell(t2, {max_depth: 1}), [2, 1])
@@ -132,11 +125,11 @@ test('unequal_cell', function (t) {
   t.same(t1.unequal_cell(t2), null)
 
     // modify cells in t2 and check return cell coordinates
-  let header = t1.header
-  for (let ri = 0; ri < t1.length; ri++) {
+  var header = t1.header
+  for (var ri = 0; ri < t1.length; ri++) {
     header.forEach(function (col, ci) {
-      let t2row = t2.rows[ri]
-      let prev = t2row[col]
+      var t2row = t2.rows[ri]
+      var prev = t2row[col]
       t2row[col] = 'ANOTHER VALUE'
       t.same(t1.unequal_cell(t2), [ri, ci])
       t2row[col] = prev
@@ -145,7 +138,7 @@ test('unequal_cell', function (t) {
   }
 
     // try different size tables (columns)
-  let t3 = table([
+  var t3 = table([
     [ 'a', 'b' ],
     [ 1, {g: 1, h: 2} ],
     [ 'x', '' ],
@@ -155,7 +148,7 @@ test('unequal_cell', function (t) {
   t.same(t3.unequal_cell(t1), [0, 2])
 
     // try different size tables (rows)
-  let t4 = table([
+  var t4 = table([
     [ 'a', 'b' ],
     [ 1, {g: 1, h: 2} ],
     [ 'x', '' ],
@@ -169,12 +162,12 @@ test('unequal_cell', function (t) {
 })
 
 test('unequal_cell- slight differences', function (t) {
-  let t1 = table([
+  var t1 = table([
     [ 'a', 'b' ],
     [ 1, null ]
   ])
 
-  let t2 = table([
+  var t2 = table([
     [ 'a', 'b' ],
     [ 1, null ]
   ])
@@ -197,28 +190,28 @@ test('unequal_cell- slight differences', function (t) {
 })
 
 test('equal', function (t) {
-  let header = ['a', 'b', 'c']
-  let data1 = [
+  var header = ['a', 'b', 'c']
+  var data1 = [
     [ 1, {g: 1, h: 2}, 3 ],
     [ 'x', '', 'z' ],
     [ NaN, [1, {q: 7}], null ]
   ]
 
     // same values data1, but not strictly equal
-  let data2 = [
+  var data2 = [
     [ 1, {g: 1, h: 2}, 3 ],
     [ 'x', '', 'z' ],
     [ NaN, [1, {q: 7}], null ]
   ]
-  let t1 = table(data1, {header: header})
-  let t2 = table(data2, {header: header})
+  var t1 = table(data1, {header: header})
+  var t2 = table(data2, {header: header})
   t.same(t1.equals(t2), true)
 
-  let t3 = table(data2, {header: ['a', 'b', 'x']})
+  var t3 = table(data2, {header: ['a', 'b', 'x']})
   t.same(t1.equals(t3), false)
 
     // array of different length at [2,1]
-  let t4 = table([
+  var t4 = table([
     [ 'a', 'b', 'c' ],
     [ 1, {g: 1, h: 2}, 3 ],
     [ 'x', '', 'z' ],
@@ -230,7 +223,7 @@ test('equal', function (t) {
 })
 
 test('slice and data', function (t) {
-  let t1 = table([
+  var t1 = table([
     ['a','b','c'],
     [ 1,  2,  3 ],
     [ 4,  5,  6 ],

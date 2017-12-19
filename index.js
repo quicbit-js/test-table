@@ -14,13 +14,6 @@ function Table (header, rows) {
 Table.prototype = {
   constructor: Table,
 
-  col: function (name) {
-    return this.rows.reduce(function (a, r) {
-      a.push(r[name])
-      return a
-    }, [])
-  },
-
   col_index: function (name) {
     return this.header.indexOf(name)
   },
@@ -36,21 +29,19 @@ Table.prototype = {
     }
   },
 
-  // return the value at the given row (number) and column (number or string).
-  // if only row arg is given, return the entire row
   val: function (row, col) {
     var row_obj = this.rows[row]
-    return arguments.length === 1 ? row_obj : row_obj[this.colName(col)]
+    return arguments.length === 1 ? row_obj : row_obj[this.col_name(col)]
   },
 
   vals: function (col) {
-    var cname = this.colName(col)
+    var cname = this.col_name(col)
     return this.rows.map(function (r) { return r[cname] })
   },
 
   set_val: function (row, col, v) {
     var row_obj = this.rows[row]
-    var cn = this.colName(col)
+    var cn = this.col_name(col)
     var prev = row_obj[cn]
     row_obj[cn] = v
     return prev
@@ -63,8 +54,6 @@ Table.prototype = {
     })
   },
 
-  // return a new table in the given column range (same range selection as Array.prototype.slice
-  // allowings negative args)
   slice: function (beg, end) {
     var h = this.header.slice(beg, end)
     var data = this.rows.map(function (r) {
@@ -95,7 +84,7 @@ Table.prototype = {
   //
   unequal_cell: function (tbl, opt) {
     opt = opt || {}
-    var max_depth = opt.max_depth || (opt.max_depth === 0 ? 0 : 100)
+    var max_depth = opt.max_depth == null ? 100 : opt.max_depth
     var equal = opt.equal || default_equal
 
     var a = this
@@ -123,7 +112,7 @@ Table.prototype = {
     if (!default_equal_arr(this.header, tbl.header, 0, 1)) {
       return false
     }
-    return this.unequalCell(tbl) === null
+    return this.unequal_cell(tbl) === null
   },
 
   toString: function () {
@@ -134,10 +123,12 @@ Table.prototype = {
     return header.join(',') + '\n' + rowstrings.join('\n')
   },
 
+  // backward-compatibility functions
   colIndex: function (name) { return this.col_index(name) },
   colName: function (col) { return this.col_name(col) },
   setVal: function (row, col, val) { return this.set_val(row, col, val) },
-  unequalCell: function (tbl, opt) { return this.unequal_cell(tbl, opt) }
+  unequalCell: function (tbl, opt) { return this.unequal_cell(tbl, opt) },
+  col: function (name) { return this.vals(name) },
 }
 
 Object.defineProperty(Table.prototype, 'length', { get: function () { return this.rows.length } })
