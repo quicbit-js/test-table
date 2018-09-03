@@ -68,6 +68,26 @@ Table.prototype = {
     })
   },
 
+  as_arrays: function (opt) {
+    var ret = []
+    var header = this.header
+    var comments = opt && opt.with_comments ? this.comments : null
+    if (comments) {
+      Array.prototype.push.apply(ret, comments.header)
+    }
+    ret.push(header)
+    this.rows.forEach(function (row, ri) {
+      if (comments && comments.data[ri]) {
+        Array.prototype.push.apply(ret, comments.data[ri])
+      }
+      ret.push(header.map(function (name) { return row[name] }))
+    })
+    if (comments) {
+      Array.prototype.push.apply(ret, comments.trailer)
+    }
+    return ret
+  },
+
   tcols: function (beg, end) {
     var h = this.header.slice(beg, end)
     var data = this.rows.map(function (r) {
@@ -123,24 +143,18 @@ Table.prototype = {
     return this.unequal_cell(tbl) === null
   },
 
-  toString: function () {
-    var header = this.header
-    var comments = this.comments
-    var rowstr = []
-    if (comments) {
-      Array.prototype.push.apply(rowstr, comments.header)
+  toString: function (opt) {
+    opt = opt || {}
+    var nopt = {
+      with_comments: opt.with_comments == null ? true : opt.with_comments
     }
-    rowstr.push(header.join(','))
-    this.rows.forEach(function (row, ri) {
-      if (comments && comments.data[ri]) {
-        Array.prototype.push.apply(rowstr, comments.data[ri])
+    return this.as_arrays(nopt).map(function (r) {
+      if (typeof r === 'string') {
+        return r
+      } else {
+        return r.join(',')
       }
-      rowstr.push(header.map(function (name) { return row[name] }).join(','))
-    })
-    if (comments) {
-      Array.prototype.push.apply(rowstr, comments.trailer)
-    }
-    return rowstr.join('\n')
+    }).join('\n')
   },
 
   // backward-compatibility functions

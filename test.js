@@ -251,6 +251,22 @@ test('equal', function (t) {
   t.end()
 })
 
+test('toString', function (t) {
+  var t1 = table([
+    '#head',
+    ['a','b','c'],
+    [ 1,  2,  3 ],
+    '#r2',
+    [ 4,  5,  6 ],
+    '#trail'
+  ])
+
+  t.same(t1.toString(), '#head\na,b,c\n1,2,3\n#r2\n4,5,6\n#trail')
+  t.same(t1.toString({with_comments: false}), 'a,b,c\n1,2,3\n4,5,6')
+
+  t.end()
+})
+
 test('tcols', function (t) {
   var t1 = table([
     ['a','b','c'],
