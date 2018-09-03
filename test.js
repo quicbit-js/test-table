@@ -3,13 +3,41 @@ var test = require('tape').test
 var table = require('.').create
 
 
-test('toString', function (t) {
-  var tbl = table([
-    [ 'a', 'b', 'c' ],
-    [ 1, 2, 3 ],
-    [ 'x', 'y', 'z' ]
-  ])
-  t.equal(tbl.toString(), 'a,b,c\n1,2,3\nx,y,z')
+test('row comments', function (t) {
+  t.equal(
+    table([
+      '#c1',
+      '#c2',
+      [ 'a', 'b', 'c' ],
+      '#c3',
+      [ 1, 2, 3 ],
+      [ 'x', 'y', 'z' ],
+      '#c4'
+    ]).toString(),
+    '#c1\n#c2\na,b,c\n#c3\n1,2,3\nx,y,z\n#c4'
+  )
+
+  t.equal(
+    table([
+      [ 'a', 'b', 'c' ],
+      '#c1',
+      [ 1, 2, 3 ],
+      '#c2',
+      '#c3',
+      [ 'x', 'y', 'z' ],
+    ]).toString(),
+    'a,b,c\n#c1\n1,2,3\n#c2\n#c3\nx,y,z'
+  )
+
+  t.equal(
+    table([
+      [ 'a', 'b', 'c' ],
+      [ 1, 2, 3 ],
+      [ 'x', 'y', 'z' ],
+    ], { comments: {header: ['#header'], trailer: ['#trailer'], data: [['#r1']]}}).toString(),
+    '#header\na,b,c\n#r1\n1,2,3\nx,y,z\n#trailer'
+  )
+
   t.end()
 })
 
@@ -255,6 +283,8 @@ test('tcols', function (t) {
 })
 
 test('trows', function (t) {
+  // no comments
+
   var t1 = table([
     ['a','b'],
     [ 1,  2 ],
@@ -268,6 +298,33 @@ test('trows', function (t) {
   t.same(t1.trows(1,2).data, [[3,4]])
   t.same(t1.trows(2,3).data, [[5,6]])
   t.same(t1.trows(-1).data, [[5,6]])
+
+  t.same(t1.trows(0,1).toString(), 'a,b\n1,2')
+  t.same(t1.trows(1,2).toString(), 'a,b\n3,4')
+  t.same(t1.trows(2,3).toString(), 'a,b\n5,6')
+  t.same(t1.trows(3,4).toString(), 'a,b')
+  t.same(t1.trows(0,4).toString(), 'a,b\n1,2\n3,4\n5,6')
+  t.same(t1.trows(1,4).toString(), 'a,b\n3,4\n5,6')
+  t.same(t1.trows(2,4).toString(), 'a,b\n5,6')
+
+  // with comments
+  var t2 = table([
+    '#c1',
+    ['a','b'],
+    [ 1,  2 ],
+    '#c2',
+    [ 3,  4 ],
+    [ 5,  6 ],
+    '#c3'
+  ])
+
+  t.same(t2.trows(0,1).toString(), '#c1\na,b\n1,2\n#c3')
+  t.same(t2.trows(1,2).toString(), '#c1\na,b\n#c2\n3,4\n#c3')
+  t.same(t2.trows(2,3).toString(), '#c1\na,b\n5,6\n#c3')
+  t.same(t2.trows(3,4).toString(), '#c1\na,b\n#c3')
+  t.same(t2.trows(0,4).toString(), '#c1\na,b\n1,2\n#c2\n3,4\n5,6\n#c3')
+  t.same(t2.trows(1,4).toString(), '#c1\na,b\n#c2\n3,4\n5,6\n#c3')
+  t.same(t2.trows(2,4).toString(), '#c1\na,b\n5,6\n#c3')
 
   t.end()
 })

@@ -1,13 +1,13 @@
 {
   "name": "test-table",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "a simple table for data-driven testing",
   "homepage": "https://github.com/quicbit-js/test-table",
   "url": "https://github.com/quicbit-js/test-table/issues",
   "email": "support@quicbit.com",
   "repository": "quicbit-js/test-table",
   "devDependencies": {
-    "tape": "^4.6.3"
+    "tape": "^4.9.1"
   },
   "scripts": {
     "test": "tape test.js",

@@ -1,7 +1,7 @@
 // A simple table where each row is an object.  helps with data-driven testing.
 'use strict'
 
-function Table (header, rows) {
+function Table (header, rows, comments) {
   var headerObj = {}
   header.forEach(function (h) {
     if (headerObj[h]) { err('header defined twice: ' + h) }
@@ -9,6 +9,20 @@ function Table (header, rows) {
   })
   this.header = header
   this.rows = rows
+
+  // If any comments are specified, the comments object has the following array properties
+  // {
+  //   header:    comments before the table header (strings starting with '#')
+  //   trailer:   comments after the last row (strings starting with '#')
+  //   data:      arrays of comments in the data by row index
+  // }
+  this.comments = comments && (
+      (comments.data && comments.data.length)
+      || (comments.header && comments.header.length)
+      || (comments.trailer && comments.trailer.length)
+  )
+  ? comments
+  : null
 }
 
 Table.prototype = {
@@ -59,13 +73,21 @@ Table.prototype = {
     var data = this.rows.map(function (r) {
       return h.map(function (n) { return r[n] })
     })
-    return create (data, {header: h})
+    return create (data, {header: h, comments: this.comments})
   },
 
   trows: function (beg, end) {
     var h = this.header.slice()
     var data = this.rows.slice(beg, end).map(function (r) { return h.map(function (n) { return r[n] })})
-    return create(data, {header: this.header.slice()})
+    var comments = null
+    if (this.comments) {
+      comments = {
+        header: this.comments.header,
+        trailer: this.comments.trailer,
+        data: this.comments.data.slice(beg, end)
+      }
+    }
+    return create(data, {header: h, comments: comments})
   },
 
   unequal_cell: function (tbl, opt) {
@@ -103,10 +125,22 @@ Table.prototype = {
 
   toString: function () {
     var header = this.header
-    var rowstrings = this.rows.map(function (row) {
-      return header.map(function (name) { return row[name] }).join(',')  // values as string
+    var comments = this.comments
+    var rowstr = []
+    if (comments) {
+      Array.prototype.push.apply(rowstr, comments.header)
+    }
+    rowstr.push(header.join(','))
+    this.rows.forEach(function (row, ri) {
+      if (comments && comments.data[ri]) {
+        Array.prototype.push.apply(rowstr, comments.data[ri])
+      }
+      rowstr.push(header.map(function (name) { return row[name] }).join(','))
     })
-    return header.join(',') + '\n' + rowstrings.join('\n')
+    if (comments) {
+      Array.prototype.push.apply(rowstr, comments.trailer)
+    }
+    return rowstr.join('\n')
   },
 
   // backward-compatibility functions
@@ -181,16 +215,53 @@ function err (msg) {
 }
 
 function create (data, opt) {
+  opt = opt || {}
   if (!Array.isArray(data)) {
     // Return table objects as-is
     data.constructor && data.constructor.name === 'Table' || err('unexpected object for create table')
     return data
   }
-  var header = opt && opt.header
+
+  data = data.slice()
+
+  // extract header comments and header
+  var header = opt.header
+  var comments = opt.comments || {}
+
   if (header == null) {
-    header = data[0]
-    data = data.slice(1)
+    if (!comments.header) {
+      comments.header = []
+      while (data.length && typeof data[0] === 'string' && data[0][0] === '#') {
+        comments.header.push(data.shift())
+      }
+    }
+    header = data.shift()
+  } else {
+    comments.header = comments.header || []
   }
+
+  // extract trailer comments (comments after last data row)
+  if (!comments.trailer) {
+    comments.trailer = []
+    while (data.length && typeof data[data.length - 1] === 'string' && data[data.length-1][0] === '#') {
+      comments.trailer.push(data.pop())
+    }
+    comments.trailer.reverse()
+  }
+
+  if (!comments.data) {
+    comments.data = []
+    data = data.reduce(function (a, row) {
+      if (typeof row === 'string' && row[0] === '#') {
+        if (!comments.data[a.length]) { comments.data[a.length] = [] }
+        comments.data[a.length].push(row)
+      } else {
+        a.push(row)
+      }
+      return a
+    }, [])
+  }
+
   if (typeof (header) === 'string') {
     // use header template: col_%d
     header = new Array(data[0].length).fill(header).map(
@@ -200,7 +271,6 @@ function create (data, opt) {
     Array.isArray(header) || err('unexpected opt.header value: ' + header)
   }
 
-  var ret = new Table(header)
   // Row properties start with normal (non-underbar) char.  Accessor functions
   // are underbar prefixed and located on prototype.  This namespace
   // compromise makes rows inspection/debug friendly because they look and behave
@@ -220,11 +290,12 @@ function create (data, opt) {
     }
   }
 
-  ret.rows = data.map(function (vals) {
+  var rows = data.map(function (vals) {
     vals.length === header.length || err('expected ' + header.length + ' values, but got: ' + vals.length)
     return new Row(vals)
   })
-  return ret
+
+  return new Table(header, rows, comments)
 }
 exports.create = create
 exports.from_data = create   // backwards compatible
