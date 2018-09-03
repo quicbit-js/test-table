@@ -97,7 +97,7 @@ make testing even more concise:
 
 ## API
 
-### create (data, opt)
+## create (data, opt)
 
 Create table from a matrix (array of arrays of data).  If data is already a table, then simply return it
 (similar to new Object(someObject)).
@@ -111,6 +111,42 @@ offset.  IOW, these statements will all create the same table and header:
     var tbl = table.create( [ [1, 2], [3, 4] ], { header: 'c_%d' } )            // using a header pattern
     var tbl = table.create( [ ['c_0','c_1'], [1, 2], [3, 4] ] )                 // explicit headers
     var tbl = table.create( [ 'c_%d', [1, 2], [3, 4] ] )                        // putting the header pattern with the data
+
+### tracking comments
+
+As of version 2.4.2, test-table supports comments maintained internally as a separate structure.  Comments
+are simply strings that begin with the hash '#' character.
+    
+    node
+    > var t1 = table.create([
+          '#head',
+          ['a','b','c'],
+          [ 1,  2,  3 ],
+          '#r2',
+          [ 4,  5,  6 ],
+          '#trail'
+        ])
+    > console.log(t1.toString())
+    #head
+    a,b,c
+    1,2,3
+    #r2
+    4,5,6
+    #trail
+    > console.log(t1.toString({with_comments: false}))
+    a,b,c
+    1,2,3
+    4,5,6
+
+The tree comments provided in the above example have slightly different features. The comments above the 
+header and below the last row are table-level comments.  They are carried over to the any new table when performing
+row selection via the trows() or tcols() functions.  The '#r2' comment above the bottom row is kept with 
+the row below and is removed if that row is removed. 
+
+## as_arrays (opt) 
+
+Return the table, including the header, as an array of arrays.  opt.with_comments will cause comment
+strings to be included in the returned array.
 
 ## col_name (idx_or_name) 
 
