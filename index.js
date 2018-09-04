@@ -16,11 +16,7 @@ function Table (header, rows, comments) {
   //   trailer:   comments after the last row (strings starting with '#')
   //   data:      arrays of comments in the data by row index
   // }
-  this.comments = comments && (
-      (comments.data && comments.data.length)
-      || (comments.header && comments.header.length)
-      || (comments.trailer && comments.trailer.length)
-  )
+  this.comments = comments && ((comments.header && comments.header.length) || (comments.trailer && comments.trailer.length))
   ? comments
   : null
 }
@@ -61,29 +57,30 @@ Table.prototype = {
     return prev
   },
 
-  get data() {
-    var h = this.header
-    return this.rows.map(function (r) {
-      return h.map(function (n) { return r[n] })
-    })
+  data: function (with_comments) {
+    return this.rows.reduce(function (a, r) {
+      r._vals(with_comments, a)
+      return a
+    }, [])
   },
 
   as_arrays: function (opt) {
+    var with_comments = opt && opt.with_comments
+    var with_header = opt && opt.with_header
     var ret = []
     var header = this.header
-    var comments = opt && opt.with_comments ? this.comments : null
-    if (comments) {
-      Array.prototype.push.apply(ret, comments.header)
+    if (with_comments && this.comments && this.comments.header) {
+      Array.prototype.push.apply(ret, this.comments.header)
     }
     ret.push(header)
-    this.rows.forEach(function (row, ri) {
-      if (comments && comments.data[ri]) {
-        Array.prototype.push.apply(ret, comments.data[ri])
+    this.rows.forEach(function (row) {
+      if (with_comments && row._comments) {
+        Array.prototype.push.apply(ret, row._comments)
       }
       ret.push(header.map(function (name) { return row[name] }))
     })
-    if (comments) {
-      Array.prototype.push.apply(ret, comments.trailer)
+    if (with_comments && this.comments && this.comments.trailer) {
+      Array.prototype.push.apply(ret, this.comments.trailer)
     }
     return ret
   },
@@ -98,13 +95,12 @@ Table.prototype = {
 
   trows: function (beg, end) {
     var h = this.header.slice()
-    var data = this.rows.slice(beg, end).map(function (r) { return h.map(function (n) { return r[n] })})
+    var data = this.rows.slice(beg, end)
     var comments = null
     if (this.comments) {
       comments = {
         header: this.comments.header,
-        trailer: this.comments.trailer,
-        data: this.comments.data.slice(beg, end)
+        trailer: this.comments.trailer
       }
     }
     return create(data, {header: h, comments: comments})
@@ -263,19 +259,6 @@ function create (data, opt) {
     comments.trailer.reverse()
   }
 
-  if (!comments.data) {
-    comments.data = []
-    data = data.reduce(function (a, row) {
-      if (typeof row === 'string' && row[0] === '#') {
-        if (!comments.data[a.length]) { comments.data[a.length] = [] }
-        comments.data[a.length].push(row)
-      } else {
-        a.push(row)
-      }
-      return a
-    }, [])
-  }
-
   if (typeof (header) === 'string') {
     // use header template: col_%d
     header = new Array(data[0].length).fill(header).map(
@@ -285,31 +268,55 @@ function create (data, opt) {
     Array.isArray(header) || err('unexpected opt.header value: ' + header)
   }
 
-  // Row properties start with normal (non-underbar) char.  Accessor functions
-  // are underbar prefixed and located on prototype.  This namespace
-  // compromise makes rows inspection/debug friendly because they look and behave
-  // like simple property objects.
-  function Row (vals) {
-    var self = this
-    vals.forEach(function (v, i) {
-      self[header[i]] = v
+  if (data.length == 0 || data[0].constructor !== Row) {
+    var rows = []
+    var row_comments = []
+    data.forEach(function (r) {
+      if (is_comment(r)) {
+        row_comments.push(r)
+      } else {
+        r.length === header.length || err('expected ' + header.length + ' values, but got: ' + r.length)
+        rows.push(new Row(header, r, row_comments))
+        row_comments = []
+      }
     })
-  }
-  Row.prototype = {
-    constructor: Row,
-    get _keys () { return header },
-    get _vals () {
-      var self = this
-      return header.map(function (k) { return self[k] })
-    }
+    data = rows
   }
 
-  var rows = data.map(function (vals) {
-    vals.length === header.length || err('expected ' + header.length + ' values, but got: ' + vals.length)
-    return new Row(vals)
-  })
-
-  return new Table(header, rows, comments)
+  return new Table(header, data, comments)
 }
+
+function is_comment (v) {
+  return typeof v === 'string' && v[0] === '#'
+}
+
+// Row properties start with normal (non-underbar) char.  Accessor functions
+// are underbar prefixed and located on prototype.  This namespace
+// compromise makes rows inspection/debug friendly because they look and behave
+// like simple property objects.
+function Row (header, vals, comments) {
+  this.header = header
+  var self = this
+  vals.forEach(function (v, i) {
+    self[header[i]] = v
+  })
+  this._comments = comments
+}
+Row.prototype = {
+  constructor: Row,
+  _keys: function () { return this.header },
+  _vals: function (with_comments, dst) {
+    if (with_comments && this._comments && dst) {
+      Array.prototype.push.apply(dst, this._comments)
+    }
+    var self = this
+    var vals = this.header.map(function (k) { return self[k] })
+    if (dst) {
+      dst.push(vals)
+    }
+    return dst || vals
+  }
+}
+
 exports.create = create
 exports.from_data = create   // backwards compatible
