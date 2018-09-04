@@ -57,28 +57,25 @@ Table.prototype = {
     return prev
   },
 
-  data: function (with_comments) {
-    return this.rows.reduce(function (a, r) {
-      r._vals(with_comments, a)
-      return a
-    }, [])
+  // return just the data of the table
+  data: function (opt, dst) {
+    var with_comments = opt && opt.with_comments
+    dst = dst || []
+    this.rows.forEach(function (row) {
+      row._vals(with_comments, dst)
+    })
+    return dst
   },
 
   as_arrays: function (opt) {
     var with_comments = opt && opt.with_comments
-    var with_header = opt && opt.with_header
     var ret = []
     var header = this.header
     if (with_comments && this.comments && this.comments.header) {
       Array.prototype.push.apply(ret, this.comments.header)
     }
     ret.push(header)
-    this.rows.forEach(function (row) {
-      if (with_comments && row._comments) {
-        Array.prototype.push.apply(ret, row._comments)
-      }
-      ret.push(header.map(function (name) { return row[name] }))
-    })
+    this.data(opt, ret)
     if (with_comments && this.comments && this.comments.trailer) {
       Array.prototype.push.apply(ret, this.comments.trailer)
     }
