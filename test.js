@@ -67,6 +67,8 @@ test('errors', function (t) {
   t.throws(function () { table({}) }, /unexpected object/)
   t.throws(function () { table([{}]) }, /unexpected opt.header value/)
   t.throws(function () { table([['a', 'b'], [1]]) }, /expected 2 values/)
+  t.throws(function () { table([['a', 'b'], 'something']) }, /unexpected type for row/)
+  t.throws(function () { table([['a', 'b'], 2]) }, /unexpected type for row/)
 
   var tbl = table([
     ['a', 'b', 'c'],
