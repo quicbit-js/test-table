@@ -272,7 +272,7 @@ function create (data, opt) {
       if (is_comment(r)) {
         row_comments.push(r)
       } else {
-        r.length === header.length || err('expected ' + header.length + ' values, but got: ' + r.length)
+        r.length === header.length || err('@row ' + rows.length + ': expected ' + header.length + ' values, but got ' + r.length)
         rows.push(new Row(header, r, row_comments))
         row_comments = []
       }
