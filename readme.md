@@ -2,19 +2,10 @@
 
 [![npm][npm-image]][npm-link]
 [![downloads][downloads-image]][npm-link]
-[![bitHound Dependencies][proddep-image]][proddep-link]
-[![dev dependencies][devdep-image]][devdep-link]
-[![code analysis][code-image]][code-link]
 
 [npm-image]:       https://img.shields.io/npm/v/test-table.svg
 [downloads-image]: https://img.shields.io/npm/dm/test-table.svg
 [npm-link]:        https://npmjs.org/package/test-table
-[proddep-image]:   https://www.bithound.io/github/quicbit-js/test-table/badges/dependencies.svg
-[proddep-link]:    https://www.bithound.io/github/quicbit-js/test-table/master/dependencies/npm
-[devdep-image]:    https://www.bithound.io/github/quicbit-js/test-table/badges/devDependencies.svg
-[devdep-link]:     https://www.bithound.io/github/quicbit-js/test-table/master/dependencies/npm
-[code-image]:      https://www.bithound.io/github/quicbit-js/test-table/badges/code.svg
-[code-link]:       https://www.bithound.io/github/quicbit-js/test-table
 
 A very simple table for data-driven testing.  test-table is provided through
 [quicbit-js/test-kit](http://github.com/quicbit-js/test-kit), but can be 
